@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小说自定义标签系统</title>
+    
+    <style>
+        /* 基础样式和重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 头部样式 */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        /* 主内容区域布局 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 卡片基础样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f3f5;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        /* 表单基础样式 */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 按钮基础样式 */
+        .submit-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 消息提示样式 */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 空状态样式 */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #bdc3c7;
+        }
+
+        /* 连接状态 */
+        .connection-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 导航样式 */
+        .main-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            padding: 0 10px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .nav-btn:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+
+        .nav-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        /* 页面容器 */
+        .page-container {
+            position: relative;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 书籍表单特定样式 */
+        .book-exists-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .existing-book-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .existing-book-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #856404;
+        }
+
+        .update-book-btn {
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .update-book-btn:hover {
+            background: #e67e22;
+        }
+
+        /* 标签区域样式 */
+        .tag-section {
+            margin-top: 25px;
+        }
+
+        .tag-search-section {
+            margin-bottom: 15px;
+        }
+
+        .tag-search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .tag-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .tag-chip {
+            background: #e9ecef;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .tag-chip:hover {
+            background: #d5dbdb;
+        }
+
+        .tag-chip.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .selected-tags {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .selected-tags-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .selected-tags-list {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        /* 创建标签区域 */
+        .create-tag-section {
+            border: 1px dashed #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 25px;
+            background: #f8f9fa;
+        }
+
+        .create-tag-title {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .create-tag-subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .create-tag-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .new-tag-input {
+            flex: 3;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .add-tag-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .add-tag-btn:hover {
+            background: #2980b9;
+        }
+
+        .add-tag-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .new-tag-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* 书籍列表样式 */
+        .book-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .book-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: all 0.2s;
+        }
+
+        .book-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .book-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .book-meta {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+
+        .book-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .book-tag {
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #495057;
+        }
+
+        /* 搜索界面特定样式 */
+        .search-mode-selector {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .mode-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .mode-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .mode-option:hover {
+            border-color: #3498db;
+        }
+
+        .mode-option input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .mode-option input[type="radio"]:checked + .mode-label {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .mode-label {
+            font-weight: 500;
+        }
+
+        .search-section {
+            display: none;
+        }
+
+        .search-section.active {
+            display: block;
+        }
+
+        .input-hint {
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin: 5px 0 10px 0;
+            font-style: italic;
+        }
+
+        .tags-input-container {
+            position: relative;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .selected-tags-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+
+        .selected-tag-chip {
+            background: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .selected-tag-chip.bonus {
+            background: #f39c12;
+        }
+
+        .selected-tag-chip.exclude {
+            background: #e74c3c;
+        }
+
+        .remove-tag-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+
+        .similarity-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .search-stats {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            color: #6c757d;
+        }
+
+        .search-results-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .empty-search-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-search-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .empty-search-state h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        /* 搜索结果项样式 */
+        .search-result-book {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .search-result-book:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .result-meta {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+
+        .match-score {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+        }
+
+        .score-badge {
+            background: #2ecc71;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .core-match-count {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .tag-match-breakdown {
+            margin: 12px 0;
+        }
+
+        .match-type {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        .core-match-tags, .bonus-match-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .core-tag-match {
+            background: #2ecc71;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .bonus-tag-match {
+            background: #f39c12;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .other-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .other-tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+        }
+
+        .book-description {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 书籍搜索输入框 */
+        .book-search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .book-search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .book-search-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f3f4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .book-search-item:hover {
+            background: #f8f9fa;
+        }
+
+        .book-search-item:last-child {
+            border-bottom: none;
+        }
+
+        /* 悬浮标签搜索结果 */
+        .floating-tag-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-top: 5px;
+            padding: 15px;
+        }
+
+        .floating-tag-results.active {
+            display: block;
+        }
+
+        .floating-tag-category {
+            margin-bottom: 15px;
+        }
+
+        .floating-category-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f0f3f5;
+        }
+
+        .floating-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .floating-tag-chip {
+            background: #e9ecef;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .floating-tag-chip:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .floating-tag-chip.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        .no-tags-found {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        /* 参考书籍信息显示样式 */
+        .reference-book-display {
+            background: #e8f4fc;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .reference-book-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .reference-book-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .reference-book-meta {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .reference-book-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .reference-tag {
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        
+        .clear-reference-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .clear-reference-btn:hover {
+            background: #c0392b;
+        }
+
+        /* 移除常用标签的样式 */
+        .quick-tags {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 小说自定义标签系统</h1>
+            <p class="subtitle">添加您喜欢的小说的标签信息吧 <span id="connection-status" class="connection-status status-disconnected">未连接</span></p>
+        </header>
+        
+        <!-- 导航菜单 -->
+        <nav class="main-nav" id="main-nav">
+            <button class="nav-btn active" data-page="book-form">📖 添加小说</button>
+            <button class="nav-btn" data-page="search">🔍 代餐搜索</button>
+        </nav>
+        
+        <!-- 页面容器 -->
+        <div class="page-container">
+            <!-- 添加小说页面 -->
+            <div id="book-form-page" class="page active">
+                <div class="main-content">
+                    <!-- 左侧：添加小说表单 -->
+                    <div class="card">
+                        <h2 class="card-title">📖 添加新小说</h2>
+                        
+                        <form id="book-form">
+                            <div class="form-group">
+                                <label for="title">书名 *</label>
+                                <input type="text" id="title" required placeholder="请输入小说书名">
+                                <div id="book-exists-message" class="book-exists-message"></div>
+                            </div>
+                            
+                            <div id="existing-book-info" class="existing-book-info">
+                                <div class="existing-book-title">《<span id="existing-book-name"></span>》已存在于数据库中</div>
+                                <div id="existing-book-details"></div>
+                                <button type="button" id="update-book-btn" class="update-book-btn">更新书籍信息</button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="author">作者</label>
+                                <input type="text" id="author" placeholder="请输入作者姓名">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="platform">发布平台</label>
+                                <select id="platform">
+                                    <option value="">请选择平台</option>
+                                    <option value="起点">起点中文网</option>
+                                    <option value="晋江">晋江文学城</option>
+                                    <option value="纵横">纵横中文网</option>
+                                    <option value="番茄">番茄小说</option>
+                                    <option value="七猫">七猫小说</option>
+                                    <option value="其他">其他平台</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="description">小说简介</label>
+                                <textarea id="description" placeholder="简单描述一下这本小说的主要内容..."></textarea>
+                            </div>
+                            
+                            <!-- 标签选择区域 -->
+                            <div class="tag-section">
+                                <h3>🏷️ 选择标签</h3>
+                                <p style="color: #666; font-size: 14px; margin-bottom: 10px;">选择适合这本小说的标签（可多选）</p>
+                                
+                                <!-- 标签搜索 -->
+                                <div class="tag-search-section">
+                                    <div class="tags-input-container">
+                                        <input type="text" id="tag-search" class="tag-search-input" placeholder="搜索标签...">
+                                        <div id="floating-tag-results" class="floating-tag-results"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 快速常用标签 - 已隐藏 -->
+                                <div class="quick-tags" id="quick-tags">
+                                    <div style="color: #666; width: 100%;">常用标签加载中...</div>
+                                </div>
+
+                                <!-- 标签分类显示 -->
+                                <div id="tag-suggestions">
+                                    <div style="color: #666;">加载标签中...</div>
+                                </div>
+                                
+                                <div class="selected-tags">
+                                    <div class="selected-tags-title">已选标签：</div>
+                                    <div id="selected-tags-list" class="selected-tags-list">暂无</div>
+                                </div>
+                            </div>
+
+                            <!-- 创建新标签区域 -->
+                            <div class="create-tag-section">
+                                <h4 class="create-tag-title">➕ 创建新标签</h4>
+                                <p class="create-tag-subtitle">输入标签名称，系统会自动分类</p>
+                                
+                                <div class="create-tag-input">
+                                    <input type="text" id="new-tag-name" class="new-tag-input" placeholder="输入新标签名称">
+                                    <button type="button" id="add-tag-btn" class="add-tag-btn">创建</button>
+                                </div>
+                                
+                                <div id="auto-category-preview" class="new-tag-preview">
+                                    <strong>系统分类：</strong>
+                                    <span id="predicted-category">正在分析...</span>
+                                </div>
+                                
+                                <div id="create-tag-message" style="margin-top: 10px; font-size: 14px;"></div>
+                            </div>
+                            
+                            <button type="submit" id="submit-btn" class="submit-btn">提交小说信息</button>
+                        </form>
+                        
+                        <div id="message" class="message"></div>
+                    </div>
+                    
+                    <!-- 右侧：小说列表 -->
+                    <div class="card">
+                        <h2 class="card-title">📋 已添加的小说</h2>
+                        <div class="book-list" id="book-list">
+                            <div class="empty-state">
+                                <div>📚</div>
+                                <p>暂无小说信息</p>
+                                <p style="font-size: 0.9rem; margin-top: 10px;">添加的小说将显示在这里</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 搜索页面 -->
+            <div id="search-page" class="page">
+                <div class="main-content">
+                    <!-- 左侧：搜索界面 -->
+                    <div class="card">
+                        <h2 class="card-title">🍜 精准代餐搜索</h2>
+                        
+                        <!-- 搜索模式选择 -->
+                        <div class="search-mode-selector">
+                            <div class="mode-options">
+                                <label class="mode-option">
+                                    <input type="radio" name="search-mode" value="core-tags" checked>
+                                    <span class="mode-label">🎯 核心标签匹配</span>
+                                </label>
+                                <label class="mode-option">
+                                    <input type="radio" name="search-mode" value="book-based">
+                                    <span class="mode-label">📖 基于书籍搜索</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 核心标签搜索区域 -->
+                        <div id="core-tags-search" class="search-section active">
+                            <div class="form-group">
+                                <label>🎯 核心标签（必须包含）</label>
+                                <p class="input-hint">选择最能代表你想要的特征，系统会优先匹配这些标签</p>
+                                <div class="tags-input-container">
+                                    <input type="text" id="core-tags-search-input" class="tag-search-input" placeholder="搜索或选择核心标签...">
+                                    <div id="core-tags-results" class="floating-tag-results"></div>
+                                </div>
+                                <div id="selected-core-tags" class="selected-tags-chips"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>💫 加分标签（可选）</label>
+                                <p class="input-hint">有这些标签会提高匹配分数，但没有也不会排除</p>
+                                <div class="tags-input-container">
+                                    <input type="text" id="bonus-tags-search-input" class="tag-search-input" placeholder="搜索加分标签...">
+                                    <div id="bonus-tags-results" class="floating-tag-results"></div>
+                                </div>
+                                <div id="selected-bonus-tags" class="selected-tags-chips"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>🚫 排除标签（避雷）</label>
+                                <p class="input-hint">包含这些标签的小说会被直接排除</p>
+                                <div class="tags-input-container">
+                                    <input type="text" id="exclude-tags-search-input" class="tag-search-input" placeholder="搜索需要排除的标签...">
+                                    <div id="exclude-tags-results" class="floating-tag-results"></div>
+                                </div>
+                                <div id="selected-exclude-tags" class="selected-tags-chips"></div>
+                            </div>
+                        </div>
+
+                        <!-- 基于书籍搜索区域 -->
+                        <div id="book-based-search" class="search-section">
+                            <div class="form-group">
+                                <label>搜索参考书籍</label>
+                                <div class="tags-input-container">
+                                    <input type="text" id="reference-book-search" class="book-search-input" placeholder="输入小说书名搜索...">
+                                    <div id="reference-book-results" class="book-search-results"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="similarity-options">
+                                <label>匹配强度：</label>
+                                <label><input type="radio" name="similarity-level" value="high" checked> 高度相似</label>
+                                <label><input type="radio" name="similarity-level" value="medium"> 中等相似</label>
+                                <label><input type="radio" name="similarity-level" value="broad"> 广泛相似</label>
+                            </div>
+
+                            <!-- 参考书籍信息显示区域 -->
+                            <div id="reference-book-display" class="reference-book-display" style="display: none;">
+                                <div class="reference-book-header">
+                                    <div>
+                                        <div class="reference-book-title" id="reference-book-display-title"></div>
+                                        <div class="reference-book-meta" id="reference-book-display-meta"></div>
+                                    </div>
+                                    <button type="button" id="clear-reference-btn" class="clear-reference-btn">清除</button>
+                                </div>
+                                <div class="reference-book-tags" id="reference-book-display-tags"></div>
+                            </div>
+
+                            <div id="book-not-found-message" class="message" style="display: none;">
+                                <p>未找到该书籍，请先<a href="#" id="go-to-add-book" style="color: #3498db; text-decoration: underline;">添加该书籍信息</a></p>
+                            </div>
+                        </div>
+
+                        <button id="start-search-btn" class="submit-btn">
+                            开始寻找代餐
+                        </button>
+
+                        <div id="search-stats" class="search-stats" style="display: none;">
+                            正在搜索符合条件的代餐...
+                        </div>
+                    </div>
+
+                    <!-- 右侧：搜索结果 -->
+                    <div class="card">
+                        <h2 class="card-title">📋 搜索结果</h2>
+                        <div id="search-results-container" class="search-results-container">
+                            <div class="empty-search-state">
+                                <div>🔍</div>
+                                <h3>开始寻找你的代餐小说</h3>
+                                <p>选择搜索条件，找到符合你口味的小说</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Supabase客户端 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // 应用配置
+        const CONFIG = {
+            supabase: {
+                url: 'https://clwpzlioymonhhuelptk.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsd3B6bGlveW1vbmhodWVscHRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MjgzMDQsImV4cCI6MjA3ODUwNDMwNH0.YZ58wm9t-XfEwMd9xylfDI4dcOxdDBaZQOYFRsYHrPs'
+            },
+            app: {
+                maxTagsPerBook: 20,
+                searchResultLimit: 20,
+                popularTagsLimit: 50
+            }
+        };
+
+        // 全局变量
+        let supabaseClient = null;
+        let allTags = [];
+        let allBooks = [];
+
+        // 书籍表单的全局变量
+        let bookFormSelectedTags = [];
+        let existingBook = null;
+
+        // 搜索页面的全局变量
+        let searchState = {
+            coreTags: [],
+            bonusTags: [],
+            excludeTags: [],
+            currentMode: 'core-tags',
+            referenceBook: null
+        };
+
+        // 工具函数
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function showMessage(text, type, elementId = 'message') {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('页面加载完成，开始初始化...');
+            
+            // 初始化Supabase
+            await initSupabase();
+            
+            // 设置事件监听器
+            setupEventListeners();
+            
+            // 加载初始数据
+            await loadInitialData();
+        });
+
+        // 初始化Supabase
+        async function initSupabase() {
+            try {
+                supabaseClient = supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.key);
+                
+                // 测试连接
+                const { data, error } = await supabaseClient
+                    .from('books')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                document.getElementById('connection-status').textContent = '已连接';
+                document.getElementById('connection-status').className = 'connection-status status-connected';
+                console.log('Supabase连接成功');
+                return true;
+                
+            } catch (error) {
+                console.error('Supabase连接失败:', error);
+                document.getElementById('connection-status').textContent = '连接失败';
+                document.getElementById('connection-status').className = 'connection-status status-disconnected';
+                return false;
+            }
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 导航按钮
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.dataset.page;
+                    switchPage(page);
+                });
+            });
+
+            // 搜索模式切换
+            document.querySelectorAll('input[name="search-mode"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    searchState.currentMode = this.value;
+                    switchSearchMode(this.value);
+                });
+            });
+
+            // 设置书籍表单事件
+            setupBookFormEvents();
+            
+            // 设置搜索事件
+            setupSearchEvents();
+        }
+
+        // 设置书籍表单事件
+        function setupBookFormEvents() {
+            const form = document.getElementById('book-form');
+            const titleInput = document.getElementById('title');
+            const tagSearchInput = document.getElementById('tag-search');
+            const addTagBtn = document.getElementById('add-tag-btn');
+            const updateBookBtn = document.getElementById('update-book-btn');
+
+            // 表单提交
+            form.addEventListener('submit', handleFormSubmit);
+            
+            // 书名检查 - 优化：实时检查
+            titleInput.addEventListener('input', function() {
+                const title = this.value.trim();
+                if (title.length > 0) {
+                    // 立即显示检查状态
+                    document.getElementById('book-exists-message').textContent = '检查中...';
+                    document.getElementById('book-exists-message').style.display = 'block';
+                    
+                    // 使用防抖处理，避免频繁请求
+                    clearTimeout(window.tagSearchTimeout);
+                    window.tagSearchTimeout = setTimeout(async () => {
+                        existingBook = await checkBookExists(title);
+                        if (existingBook) {
+                            showBookExistsMessage(existingBook);
+                        } else {
+                            hideBookExistsMessage();
+                        }
+                    }, 300);
+                } else {
+                    hideBookExistsMessage();
+                }
+            });
+            
+            // 标签搜索 - 优化：悬浮显示搜索结果
+            tagSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                const resultsContainer = document.getElementById('floating-tag-results');
+                
+                if (searchTerm.length < 1) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.classList.remove('active');
+                    return;
+                }
+                
+                // 立即显示搜索状态
+                resultsContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">搜索中...</div>';
+                resultsContainer.classList.add('active');
+                
+                // 使用防抖处理，避免频繁请求
+                clearTimeout(window.tagSearchTimeout);
+                window.tagSearchTimeout = setTimeout(() => {
+                    const searchResults = searchTags(searchTerm, 50); // 显示更多结果
+                    displayFloatingTagResults(searchResults, resultsContainer, 'book-form');
+                }, 300);
+            });
+            
+            // 点击页面其他地方关闭搜索结果
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.tags-input-container')) {
+                    document.getElementById('floating-tag-results').classList.remove('active');
+                }
+            });
+            
+            // 创建新标签
+            addTagBtn.addEventListener('click', handleCreateNewTag);
+            
+            // 更新现有书籍
+            updateBookBtn.addEventListener('click', handleUpdateExistingBook);
+            
+            // 实时分类预览
+            document.getElementById('new-tag-name').addEventListener('input', async function() {
+                const tagName = this.value.trim();
+                const preview = document.getElementById('auto-category-preview');
+                
+                if (tagName) {
+                    const predictedCategory = predictCategory(tagName);
+                    document.getElementById('predicted-category').textContent = predictedCategory;
+                    preview.style.display = 'block';
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+
+            // 处理表单提交
+            async function handleFormSubmit(event) {
+                event.preventDefault();
+                
+                if (existingBook) {
+                    await handleUpdateExistingBook();
+                    return;
+                }
+                
+                const submitBtn = document.getElementById('submit-btn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '提交中...';
+                submitBtn.disabled = true;
+                
+                const formData = {
+                    title: document.getElementById('title').value.trim(),
+                    author: document.getElementById('author').value.trim(),
+                    platform: document.getElementById('platform').value,
+                    description: document.getElementById('description').value.trim(),
+                    submitted_by: 'user_' + Date.now()
+                };
+                
+                if (!formData.title) {
+                    showMessage('请填写书名！', 'error');
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                try {
+                    const result = await addBook(formData, bookFormSelectedTags);
+                    
+                    if (result.success) {
+                        showMessage(`✅ 成功添加《${formData.title}》到数据库！`, 'success');
+                        form.reset();
+                        bookFormSelectedTags = [];
+                        updateBookFormSelectedTagsDisplay();
+                        document.querySelectorAll('.tag-chip.selected').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        await loadBooks();
+                    } else {
+                        if (result.message.includes('已存在')) {
+                            existingBook = await checkBookExists(formData.title);
+                            if (existingBook) {
+                                showBookExistsMessage(existingBook);
+                            }
+                        } else {
+                            showMessage('提交失败：' + result.message, 'error');
+                        }
+                    }
+                } catch (error) {
+                    console.error('提交错误:', error);
+                    showMessage('提交失败：' + error.message, 'error');
+                } finally {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+            
+            function showBookExistsMessage(book) {
+                const messageDiv = document.getElementById('book-exists-message');
+                const existingBookInfo = document.getElementById('existing-book-info');
+                const existingBookName = document.getElementById('existing-book-name');
+                const existingBookDetails = document.getElementById('existing-book-details');
+                
+                messageDiv.textContent = '此书已存在于数据库中，您可以更新信息或添加标签';
+                messageDiv.style.display = 'block';
+                
+                existingBookName.textContent = book.title;
+                document.getElementById('author').value = book.author || '';
+                document.getElementById('platform').value = book.platform || '';
+                document.getElementById('description').value = book.description || '';
+                
+                bookFormSelectedTags = [];
+                if (book.book_tags && book.book_tags.length > 0) {
+                    book.book_tags.forEach(bt => {
+                        bookFormSelectedTags.push(bt.tags);
+                    });
+                }
+                updateBookFormSelectedTagsDisplay();
+                
+                document.querySelectorAll('.tag-chip').forEach(el => {
+                    el.classList.remove('selected');
+                });
+                bookFormSelectedTags.forEach(tag => {
+                    const tagElement = document.querySelector(`.tag-chip[data-tag-id="${tag.id}"]`);
+                    if (tagElement) {
+                        tagElement.classList.add('selected');
+                    }
+                });
+                
+                let detailsHtml = '';
+                if (book.author) detailsHtml += `<div>作者: ${book.author}</div>`;
+                if (book.platform) detailsHtml += `<div>平台: ${book.platform}</div>`;
+                if (book.book_tags && book.book_tags.length > 0) {
+                    detailsHtml += `<div>现有标签: ${book.book_tags.map(bt => bt.tags.name).join(', ')}</div>`;
+                }
+                
+                existingBookDetails.innerHTML = detailsHtml;
+                existingBookInfo.style.display = 'block';
+                document.getElementById('submit-btn').textContent = '更新书籍信息';
+            }
+            
+            function hideBookExistsMessage() {
+                document.getElementById('book-exists-message').style.display = 'none';
+                document.getElementById('existing-book-info').style.display = 'none';
+                existingBook = null;
+                document.getElementById('submit-btn').textContent = '提交小说信息';
+            }
+            
+            async function handleUpdateExistingBook() {
+                if (!existingBook) {
+                    showMessage('未找到要更新的书籍', 'error');
+                    return;
+                }
+                
+                const submitBtn = document.getElementById('submit-btn');
+                const originalText = submitBtn.textContent;
+                submitBtn.textContent = '更新中...';
+                submitBtn.disabled = true;
+                
+                try {
+                    const updateData = {
+                        author: document.getElementById('author').value.trim(),
+                        platform: document.getElementById('platform').value,
+                        description: document.getElementById('description').value.trim()
+                    };
+                    
+                    const result = await updateBook(existingBook.id, updateData, bookFormSelectedTags);
+                    
+                    if (result.success) {
+                        showMessage(`✅ 成功更新《${existingBook.title}》的信息`, 'success');
+                        document.getElementById('book-form').reset();
+                        bookFormSelectedTags = [];
+                        updateBookFormSelectedTagsDisplay();
+                        document.querySelectorAll('.tag-chip.selected').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        hideBookExistsMessage();
+                        await loadBooks();
+                    } else {
+                        showMessage('更新失败：' + result.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('更新书籍失败:', error);
+                    showMessage('更新失败：' + error.message, 'error');
+                } finally {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+            
+            async function handleCreateNewTag() {
+                const nameInput = document.getElementById('new-tag-name');
+                let tagName = nameInput.value.trim();
+                
+                if (!tagName) {
+                    showCreateTagMessage('请输入标签名称', 'error');
+                    return;
+                }
+                
+                if (tagName.length > 20) {
+                    showCreateTagMessage('标签名称不能超过20个字符', 'error');
+                    return;
+                }
+                
+                // 检查是否已存在于标签库中
+                const existingTag = allTags.find(tag => 
+                    tag.name.toLowerCase() === tagName.toLowerCase()
+                );
+                
+                if (existingTag) {
+                    showCreateTagMessage(`标签 "${tagName}" 已存在，请直接选择使用`, 'error');
+                    return;
+                }
+                
+                // 检查是否已存在于已选标签中
+                const existsInSelected = bookFormSelectedTags.some(tag => tag.name === tagName);
+                if (existsInSelected) {
+                    showCreateTagMessage('该标签已存在于已选标签中', 'error');
+                    return;
+                }
+                
+                const predictedCategory = predictCategory(tagName);
+                const result = await createTag(tagName, predictedCategory);
+                
+                if (result.success) {
+                    showCreateTagMessage(`✅ 已创建标签: ${tagName} (${predictedCategory})`, 'success');
+                    addExistingTagToBookForm(result.tag);
+                    nameInput.value = '';
+                    document.getElementById('auto-category-preview').style.display = 'none';
+                    await loadTagSuggestions();
+                } else {
+                    showCreateTagMessage('创建标签失败: ' + result.message, 'error');
+                }
+            }
+            
+            function addExistingTagToBookForm(tag) {
+                if (!bookFormSelectedTags.some(t => t.id === tag.id)) {
+                    bookFormSelectedTags.push(tag);
+                    updateBookFormSelectedTagsDisplay();
+                    showCreateTagMessage(`已添加标签: ${tag.name}`, 'success');
+                    // 关闭搜索结果
+                    document.getElementById('floating-tag-results').classList.remove('active');
+                    document.getElementById('tag-search').value = '';
+                }
+            }
+            
+            function updateBookFormSelectedTagsDisplay() {
+                const container = document.getElementById('selected-tags-list');
+                
+                if (bookFormSelectedTags.length === 0) {
+                    container.textContent = '暂无';
+                    container.style.color = '#6c757d';
+                } else {
+                    container.textContent = bookFormSelectedTags.map(tag => tag.name).join(', ');
+                    container.style.color = '#000';
+                }
+            }
+            
+            function showCreateTagMessage(text, type) {
+                const messageDiv = document.getElementById('create-tag-message');
+                messageDiv.textContent = text;
+                messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+                messageDiv.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+                messageDiv.style.padding = '8px';
+                messageDiv.style.borderRadius = '4px';
+                messageDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 设置搜索事件
+        function setupSearchEvents() {
+            // 标签搜索设置 - 使用悬浮显示
+            setupFloatingTagSearch('core-tags-search-input', 'core-tags-results', 'core');
+            setupFloatingTagSearch('bonus-tags-search-input', 'bonus-tags-results', 'bonus');
+            setupFloatingTagSearch('exclude-tags-search-input', 'exclude-tags-results', 'exclude');
+
+            // 书籍搜索 - 优化：实时搜索并同步显示
+            const bookSearchInput = document.getElementById('reference-book-search');
+            bookSearchInput.addEventListener('input', debounce(async function() {
+                const searchTerm = this.value.trim();
+                const resultsContainer = document.getElementById('reference-book-results');
+                
+                if (searchTerm.length < 1) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+                
+                // 立即显示搜索状态
+                resultsContainer.innerHTML = '<div style="padding: 10px; color: #666;">搜索中...</div>';
+                resultsContainer.style.display = 'block';
+                
+                const searchResults = await searchBooksByName(searchTerm, 10);
+                displayBookSearchResults(searchResults, resultsContainer);
+                resultsContainer.style.display = 'block';
+            }, 500));
+
+            // 开始搜索按钮
+            document.getElementById('start-search-btn').addEventListener('click', () => {
+                performSearch();
+            });
+
+            // 清除参考书籍按钮
+            document.getElementById('clear-reference-btn').addEventListener('click', function() {
+                clearReferenceBook();
+            });
+
+            // 跳转到添加书籍
+            document.getElementById('go-to-add-book').addEventListener('click', function(e) {
+                e.preventDefault();
+                const bookName = document.getElementById('reference-book-search').value.trim();
+                if (bookName) {
+                    document.getElementById('title').value = bookName;
+                }
+                switchPage('book-form');
+            });
+        }
+
+        function setupFloatingTagSearch(inputId, resultsId, type) {
+            const input = document.getElementById(inputId);
+            const results = document.getElementById(resultsId);
+            
+            input.addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                if (searchTerm.length < 1) {
+                    results.innerHTML = '';
+                    results.classList.remove('active');
+                    return;
+                }
+                
+                const filteredTags = searchTags(searchTerm, 50);
+                displayFloatingTagResults(filteredTags, results, type);
+                results.classList.add('active');
+            });
+            
+            input.addEventListener('blur', function() {
+                setTimeout(() => {
+                    results.classList.remove('active');
+                }, 200);
+            });
+        }
+
+        function displayFloatingTagResults(tags, container, context) {
+            if (tags.length === 0) {
+                container.innerHTML = '<div class="no-tags-found">未找到相关标签</div>';
+                return;
+            }
+            
+            // 按分类分组
+            const tagsByCategory = {};
+            tags.forEach(tag => {
+                if (!tagsByCategory[tag.category]) {
+                    tagsByCategory[tag.category] = [];
+                }
+                tagsByCategory[tag.category].push(tag);
+            });
+            
+            let html = '';
+            Object.keys(tagsByCategory).forEach(category => {
+                html += `
+                    <div class="floating-tag-category">
+                        <div class="floating-category-title">${category}</div>
+                        <div class="floating-tags-container">
+                            ${tagsByCategory[category].map(tag => `
+                                <div class="floating-tag-chip" data-tag-id="${tag.id}">
+                                    ${tag.name}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // 添加点击事件
+            container.querySelectorAll('.floating-tag-chip').forEach(chip => {
+                chip.addEventListener('click', function() {
+                    const tagId = this.dataset.tagId;
+                    const tag = allTags.find(t => t.id === tagId);
+                    
+                    if (tag) {
+                        if (context === 'book-form') {
+                            if (!bookFormSelectedTags.some(t => t.id === tag.id)) {
+                                bookFormSelectedTags.push(tag);
+                                updateBookFormSelectedTagsDisplay();
+                                // 在标签列表中也要选中
+                                const tagChip = document.querySelector(`.tag-chip[data-tag-id="${tag.id}"]`);
+                                if (tagChip) {
+                                    tagChip.classList.add('selected');
+                                }
+                            }
+                            // 清空搜索框和结果
+                            document.getElementById('tag-search').value = '';
+                            container.classList.remove('active');
+                        } else {
+                            // 搜索页面的标签添加
+                            addTagToSearch(tag, context);
+                            document.getElementById(`${context}-tags-search-input`).value = '';
+                            container.classList.remove('active');
+                        }
+                    }
+                });
+            });
+        }
+
+        function displayBookSearchResults(books, container) {
+            if (books.length === 0) {
+                container.innerHTML = '<div class="book-search-item">未找到相关书籍</div>';
+                return;
+            }
+            
+            container.innerHTML = books.map(book => `
+                <div class="book-search-item" data-book-id="${book.id}">
+                    <div>
+                        <strong>《${book.title}》</strong>
+                        <div style="color: #6c757d; font-size: 0.8rem;">
+                            ${book.author ? `作者：${book.author} | ` : ''}
+                            ${book.platform ? `平台：${book.platform} | ` : ''}
+                            ${book.book_tags ? `标签：${book.book_tags.map(bt => bt.tags.name).join(', ')}` : ''}
+                        </div>
+                    </div>
+                    <div style="color: #6c757d; font-size: 0.8rem;">点击选择</div>
+                </div>
+            `).join('');
+            
+            container.querySelectorAll('.book-search-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const bookId = this.dataset.bookId;
+                    const book = allBooks.find(b => b.id === bookId);
+                    
+                    if (book) {
+                        selectReferenceBook(book);
+                        document.getElementById('reference-book-search').value = '';
+                        container.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function addTagToSearch(tag, type) {
+            const tagArray = searchState[`${type}Tags`];
+            const container = document.getElementById(`selected-${type}-tags`);
+            
+            if (tagArray.some(t => t.id === tag.id)) {
+                return;
+            }
+            
+            tagArray.push(tag);
+            
+            const tagChip = document.createElement('div');
+            tagChip.className = `selected-tag-chip ${type}`;
+            tagChip.innerHTML = `
+                ${tag.name}
+                <button class="remove-tag-btn" data-tag-id="${tag.id}" data-tag-type="${type}">
+                    ❌
+                </button>
+            `;
+            
+            container.appendChild(tagChip);
+            
+            tagChip.querySelector('.remove-tag-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const tagId = this.dataset.tagId;
+                const tagType = this.dataset.tagType;
+                removeTagFromSearch(tagId, tagType);
+            });
+        }
+
+        function removeTagFromSearch(tagId, type) {
+            const tagArray = searchState[`${type}Tags`];
+            const index = tagArray.findIndex(t => t.id === tagId);
+            
+            if (index > -1) {
+                tagArray.splice(index, 1);
+            }
+            
+            const container = document.getElementById(`selected-${type}-tags`);
+            const chipToRemove = container.querySelector(`[data-tag-id="${tagId}"]`).parentElement;
+            container.removeChild(chipToRemove);
+        }
+
+        function selectReferenceBook(book) {
+            searchState.referenceBook = book;
+            
+            const displayContainer = document.getElementById('reference-book-display');
+            const notFoundMessage = document.getElementById('book-not-found-message');
+            
+            // 显示参考书籍信息
+            document.getElementById('reference-book-display-title').textContent = `《${book.title}》`;
+            
+            let metaInfo = [];
+            if (book.author) metaInfo.push(`作者：${book.author}`);
+            if (book.platform) metaInfo.push(`平台：${book.platform}`);
+            document.getElementById('reference-book-display-meta').textContent = metaInfo.join(' | ');
+            
+            // 显示标签
+            const tagsContainer = document.getElementById('reference-book-display-tags');
+            if (book.book_tags && book.book_tags.length > 0) {
+                tagsContainer.innerHTML = book.book_tags.map(bt => 
+                    `<span class="reference-tag">${bt.tags.name}</span>`
+                ).join('');
+            } else {
+                tagsContainer.innerHTML = '<span style="color: #6c757d; font-style: italic;">暂无标签</span>';
+            }
+            
+            displayContainer.style.display = 'block';
+            
+            // 隐藏未找到消息
+            notFoundMessage.style.display = 'none';
+            
+            console.log('已选择参考书籍:', book.title);
+        }
+
+        function clearReferenceBook() {
+            searchState.referenceBook = null;
+            document.getElementById('reference-book-display').style.display = 'none';
+            document.getElementById('reference-book-search').value = '';
+            document.getElementById('book-not-found-message').style.display = 'none';
+            
+            // 清空搜索结果
+            document.getElementById('search-results-container').innerHTML = `
+                <div class="empty-search-state">
+                    <div>🔍</div>
+                    <h3>开始寻找你的代餐小说</h3>
+                    <p>选择搜索条件，找到符合你口味的小说</p>
+                </div>
+            `;
+            
+            console.log('已清除参考书籍');
+        }
+
+        // 页面切换
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const targetPage = document.getElementById(`${pageId}-page`);
+            const targetBtn = document.querySelector(`[data-page="${pageId}"]`);
+            
+            if (targetPage && targetBtn) {
+                targetPage.classList.add('active');
+                targetBtn.classList.add('active');
+            }
+            
+            // 切换到搜索页面时，如果之前有参考书籍，确保正确显示
+            if (pageId === 'search' && searchState.referenceBook) {
+                selectReferenceBook(searchState.referenceBook);
+            }
+        }
+
+        function switchSearchMode(mode) {
+            document.querySelectorAll('.search-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`${mode}-search`).classList.add('active');
+            
+            // 重置参考书籍选择（只有在切换到非书籍搜索模式时才清除）
+            if (mode !== 'book-based') {
+                clearReferenceBook();
+            }
+        }
+
+        // 数据加载函数
+        async function loadInitialData() {
+            await loadAllTags();
+            await loadBooks();
+            await loadTagSuggestions();
+        }
+
+        async function loadAllTags() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tags')
+                    .select('*')
+                    .order('used_count', { ascending: false });
+                
+                if (error) throw error;
+                allTags = data;
+                
+            } catch (error) {
+                console.error('加载标签失败:', error);
+            }
+        }
+
+        async function loadBooks() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('books')
+                    .select(`
+                        *,
+                        book_tags (
+                            tags (*)
+                        )
+                    `)
+                    .order('created_at', { ascending: false })
+                    .limit(50); // 加载更多书籍用于搜索
+                
+                if (error) throw error;
+                
+                allBooks = data;
+                displayBooks(data);
+                
+            } catch (error) {
+                console.error('加载书籍失败:', error);
+            }
+        }
+
+        function displayBooks(books) {
+            const container = document.getElementById('book-list');
+            
+            if (books.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div>📚</div>
+                        <p>暂无小说信息</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">添加的小说将显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = books.map(book => `
+                <div class="book-item">
+                    <div class="book-title">《${book.title}》</div>
+                    <div class="book-meta">
+                        ${book.author ? `作者：${book.author} | ` : ''}
+                        ${book.platform ? `平台：${book.platform} | ` : ''}
+                        添加时间：${new Date(book.created_at).toLocaleDateString()}
+                    </div>
+                    <div class="book-tags">
+                        ${book.book_tags ? book.book_tags.map(bt => 
+                            `<span class="book-tag">${bt.tags.name}</span>`
+                        ).join('') : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadTagSuggestions() {
+            const container = document.getElementById('tag-suggestions');
+            container.innerHTML = '';
+            
+            const tagsByCategory = {};
+            allTags.forEach(tag => {
+                if (!tagsByCategory[tag.category]) {
+                    tagsByCategory[tag.category] = [];
+                }
+                tagsByCategory[tag.category].push(tag);
+            });
+            
+            Object.keys(tagsByCategory).forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.style.marginBottom = '20px';
+                
+                const categoryTitle = document.createElement('div');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category;
+                categoryDiv.appendChild(categoryTitle);
+                
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'tag-suggestions';
+                
+                tagsByCategory[category].forEach(tag => {
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'tag-chip';
+                    tagElement.textContent = tag.name;
+                    tagElement.title = `${tag.name} (${tag.category})`;
+                    tagElement.setAttribute('data-tag-id', tag.id);
+                    tagElement.addEventListener('click', function() {
+                        const isSelected = this.classList.contains('selected');
+                        if (isSelected) {
+                            this.classList.remove('selected');
+                            bookFormSelectedTags = bookFormSelectedTags.filter(t => t.id !== tag.id);
+                        } else {
+                            this.classList.add('selected');
+                            if (!bookFormSelectedTags.some(t => t.id === tag.id)) {
+                                bookFormSelectedTags.push(tag);
+                            }
+                        }
+                        updateBookFormSelectedTagsDisplay();
+                    });
+                    tagsContainer.appendChild(tagElement);
+                });
+                
+                categoryDiv.appendChild(tagsContainer);
+                container.appendChild(categoryDiv);
+            });
+        }
+
+        // 搜索功能
+        async function performSearch() {
+            const stats = document.getElementById('search-stats');
+            const resultsContainer = document.getElementById('search-results-container');
+            
+            stats.style.display = 'block';
+            stats.innerHTML = '<div class="loading-spinner"></div> 正在搜索符合条件的代餐...';
+            resultsContainer.innerHTML = '';
+            
+            try {
+                let results = [];
+                let searchDescription = '';
+                
+                switch (searchState.currentMode) {
+                    case 'core-tags':
+                        if (searchState.coreTags.length === 0 && searchState.bonusTags.length === 0) {
+                            throw new Error('请至少选择一个搜索标签');
+                        }
+                        results = await searchByTags(
+                            searchState.coreTags, 
+                            searchState.bonusTags, 
+                            searchState.excludeTags
+                        );
+                        searchDescription = `基于 ${searchState.coreTags.length} 个核心标签和 ${searchState.bonusTags.length} 个加分标签`;
+                        break;
+                        
+                    case 'book-based':
+                        if (!searchState.referenceBook) {
+                            // 如果没有选择参考书籍，尝试搜索
+                            const bookName = document.getElementById('reference-book-search').value.trim();
+                            if (!bookName) {
+                                throw new Error('请输入或选择参考书籍');
+                            }
+                            
+                            const foundBooks = await searchBooksByName(bookName, 1);
+                            if (foundBooks.length === 0) {
+                                // 显示引导信息
+                                document.getElementById('book-not-found-message').style.display = 'block';
+                                stats.style.display = 'none';
+                                return;
+                            }
+                            
+                            searchState.referenceBook = foundBooks[0];
+                            selectReferenceBook(foundBooks[0]);
+                        }
+                        
+                        const similarityLevel = document.querySelector('input[name="similarity-level"]:checked').value;
+                        results = await searchByReferenceBook(searchState.referenceBook, similarityLevel);
+                        
+                        // 更新搜索描述
+                        const levelText = {
+                            'high': '高度相似',
+                            'medium': '中等相似', 
+                            'broad': '广泛相似'
+                        }[similarityLevel];
+                        searchDescription = `基于《${searchState.referenceBook.title}》的${levelText}匹配`;
+                        break;
+                }
+                
+                displaySearchResults(results, searchDescription);
+                stats.innerHTML = `找到 ${results.length} 个符合条件的代餐 (${searchDescription})`;
+                
+            } catch (error) {
+                console.error('搜索失败:', error);
+                stats.innerHTML = `<div style="color: red;">搜索失败: ${error.message}</div>`;
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <div>⚠️</div>
+                        <h3>搜索失败</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displaySearchResults(results, searchDescription = '') {
+            const container = document.getElementById('search-results-container');
+            
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div>🔍</div>
+                        <h3>未找到符合条件的代餐</h3>
+                        <p>${searchDescription || '尝试调整搜索条件或使用不同的搜索模式'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 添加搜索描述
+            let headerHtml = '';
+            if (searchDescription) {
+                headerHtml = `
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <strong>搜索条件：</strong>${searchDescription}
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = headerHtml + results.map(result => `
+                <div class="search-result-book">
+                    <div class="result-header">
+                        <div>
+                            <div class="result-title">《${result.book.title}》</div>
+                            <div class="result-meta">
+                                ${result.book.author ? `作者：${result.book.author} | ` : ''}
+                                ${result.book.platform ? `平台：${result.book.platform} | ` : ''}
+                                匹配度：${Math.round(result.score * 100)}%
+                            </div>
+                        </div>
+                        <div class="match-score">
+                            <span class="score-badge">${Math.round(result.score * 100)}%</span>
+                            ${result.totalCoreTags > 0 ? 
+                                `<span class="core-match-count">${result.coreMatchCount}/${result.totalCoreTags}</span>` : ''
+                            }
+                        </div>
+                    </div>
+                    
+                    ${result.coreMatches.length > 0 ? `
+                        <div class="tag-match-breakdown">
+                            <div class="match-type">🎯 核心匹配：</div>
+                            <div class="core-match-tags">
+                                ${result.coreMatches.map(tag => 
+                                    `<span class="core-tag-match">${tag.name}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${result.bonusMatches.length > 0 ? `
+                        <div class="tag-match-breakdown">
+                            <div class="match-type">💫 加分匹配：</div>
+                            <div class="bonus-match-tags">
+                                ${result.bonusMatches.map(tag => 
+                                    `<span class="bonus-tag-match">${tag.name}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${result.book.description ? `
+                        <div class="book-description">${result.book.description}</div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // 数据库操作函数
+        async function checkBookExists(title) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('books')
+                    .select(`
+                        *,
+                        book_tags (
+                            tags (*)
+                        )
+                    `)
+                    .ilike('title', title)
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                return data && data.length > 0 ? data[0] : null;
+            } catch (error) {
+                console.error('检查书名失败:', error);
+                return null;
+            }
+        }
+
+        async function searchBooksByName(title, limit = 10) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('books')
+                    .select(`
+                        *,
+                        book_tags (
+                            tags (*)
+                        )
+                    `)
+                    .ilike('title', `%${title}%`)
+                    .limit(limit);
+                
+                if (error) throw error;
+                return data || [];
+            } catch (error) {
+                console.error('搜索书籍失败:', error);
+                return [];
+            }
+        }
+
+        async function addBook(bookData, selectedTags) {
+            try {
+                // 先检查是否已存在
+                const existing = await checkBookExists(bookData.title);
+                if (existing) {
+                    return { success: false, message: '书籍已存在，请更新信息或添加标签' };
+                }
+                
+                // 1. 插入书籍数据
+                const { data: book, error: bookError } = await supabaseClient
+                    .from('books')
+                    .insert([bookData])
+                    .select();
+                
+                if (bookError) throw bookError;
+                
+                const bookId = book[0].id;
+                
+                // 2. 插入标签关联
+                if (selectedTags.length > 0) {
+                    const bookTagInserts = selectedTags.map(tag => ({
+                        book_id: bookId,
+                        tag_id: tag.id
+                    }));
+                    
+                    const { error: tagError } = await supabaseClient
+                        .from('book_tags')
+                        .insert(bookTagInserts);
+                    
+                    if (tagError) throw tagError;
+                }
+                
+                return { success: true, message: '书籍添加成功', book: book[0] };
+            } catch (error) {
+                console.error('添加书籍失败:', error);
+                if (error.code === '23505') { // 唯一约束违反
+                    return { success: false, message: '书籍已存在，请更新信息或添加标签' };
+                }
+                return { success: false, message: `添加失败: ${error.message}` };
+            }
+        }
+
+        async function updateBook(bookId, bookData, selectedTags) {
+            try {
+                // 1. 更新书籍信息
+                const { error: bookError } = await supabaseClient
+                    .from('books')
+                    .update(bookData)
+                    .eq('id', bookId);
+                
+                if (bookError) throw bookError;
+                
+                // 2. 更新标签关联
+                const { error: deleteError } = await supabaseClient
+                    .from('book_tags')
+                    .delete()
+                    .eq('book_id', bookId);
+                
+                if (deleteError) throw deleteError;
+                
+                if (selectedTags.length > 0) {
+                    const bookTagInserts = selectedTags.map(tag => ({
+                        book_id: bookId,
+                        tag_id: tag.id
+                    }));
+                    
+                    const { error: insertError } = await supabaseClient
+                        .from('book_tags')
+                        .insert(bookTagInserts);
+                    
+                    if (insertError) throw insertError;
+                }
+                
+                return { success: true, message: '书籍更新成功' };
+            } catch (error) {
+                console.error('更新书籍失败:', error);
+                return { success: false, message: `更新失败: ${error.message}` };
+            }
+        }
+
+        async function createTag(tagName, category) {
+            try {
+                // 检查是否已存在
+                const existingTag = allTags.find(tag => 
+                    tag.name.toLowerCase() === tagName.toLowerCase()
+                );
+                
+                if (existingTag) {
+                    return { success: false, message: '标签已存在，请直接选择使用', tag: existingTag };
+                }
+                
+                // 创建新标签
+                const { data, error } = await supabaseClient
+                    .from('tags')
+                    .insert([{
+                        name: tagName,
+                        category: category,
+                        description: '',
+                        used_count: 0
+                    }])
+                    .select();
+                
+                if (error) throw error;
+                
+                const newTag = data[0];
+                allTags.unshift(newTag);
+                
+                return { success: true, message: '标签创建成功', tag: newTag };
+            } catch (error) {
+                console.error('创建标签失败:', error);
+                if (error.code === '23505') { // 唯一约束违反
+                    return { success: false, message: '标签已存在，请直接选择使用' };
+                }
+                return { success: false, message: `创建失败: ${error.message}` };
+            }
+        }
+
+        function searchTags(keyword, limit = 10) {
+            if (!keyword) return [];
+            
+            return allTags.filter(tag => 
+                tag.name.toLowerCase().includes(keyword.toLowerCase())
+            ).slice(0, limit);
+        }
+
+        function predictCategory(tagName) {
+            const categoryKeywords = {
+                '核心设定': ['穿越', '重生', '系统', '末世', '星际', '玄幻', '仙侠', '武侠', '科幻'],
+                '感情模式': ['甜宠', '虐恋', '暗恋', '先婚后爱', '破镜重圆', '青梅竹马'],
+                '人物关系': ['1v1', '群像', '兄弟', '姐妹', '师徒', '主仆', '强强'],
+                '叙事风格': ['轻松', '正剧', '搞笑', '悬疑', '恐怖', '治愈', '沙雕'],
+                '阅读提示': ['HE', 'BE', 'SC', '有肉', '清水', '完结', '连载']
+            };
+            
+            const lowerTagName = tagName.toLowerCase();
+            for (const [category, keywords] of Object.entries(categoryKeywords)) {
+                if (keywords.some(keyword => lowerTagName.includes(keyword.toLowerCase()))) {
+                    return category;
+                }
+            }
+            
+            return '其他';
+        }
+
+        async function searchByTags(coreTags, bonusTags, excludeTags) {
+            try {
+                // 获取所有书籍及其标签
+                const { data: allBooks, error } = await supabaseClient
+                    .from('books')
+                    .select(`
+                        *,
+                        book_tags ( tags (*) )
+                    `)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                // 计算匹配度
+                const results = allBooks.map(book => {
+                    const bookTagIds = book.book_tags.map(bt => bt.tags.id);
+                    
+                    // 核心标签匹配
+                    const coreMatches = coreTags.filter(tag => 
+                        bookTagIds.includes(tag.id)
+                    );
+                    
+                    // 加分标签匹配
+                    const bonusMatches = bonusTags.filter(tag =>
+                        bookTagIds.includes(tag.id)
+                    );
+                    
+                    // 排除标签检查
+                    const hasExcludedTags = excludeTags.some(tag =>
+                        bookTagIds.includes(tag.id)
+                    );
+                    
+                    if (hasExcludedTags) {
+                        return null;
+                    }
+                    
+                    // 计算匹配分数
+                    const coreScore = coreTags.length > 0 ? 
+                        coreMatches.length / coreTags.length : 0;
+                    const bonusScore = bonusMatches.length * 0.1;
+                    const totalScore = coreScore + bonusScore;
+                    
+                    return {
+                        book,
+                        score: totalScore,
+                        coreMatches,
+                        bonusMatches,
+                        coreMatchCount: coreMatches.length,
+                        totalCoreTags: coreTags.length
+                    };
+                }).filter(result => result !== null && result.score > 0)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 20);
+                
+                return results;
+            } catch (error) {
+                console.error('搜索失败:', error);
+                throw error;
+            }
+        }
+
+        async function searchByReferenceBook(referenceBook, similarityLevel) {
+            try {
+                if (!referenceBook || !referenceBook.book_tags) {
+                    throw new Error('参考书籍没有标签信息');
+                }
+                
+                const referenceTags = referenceBook.book_tags.map(bt => bt.tags);
+                
+                // 根据相似度级别调整搜索策略
+                let coreTags = [];
+                let bonusTags = [];
+                
+                if (similarityLevel === 'high') {
+                    // 高度相似：使用所有标签作为核心标签
+                    coreTags = referenceTags;
+                } else if (similarityLevel === 'medium') {
+                    // 中等相似：使用部分核心标签
+                    coreTags = referenceTags.slice(0, Math.ceil(referenceTags.length * 0.7));
+                    bonusTags = referenceTags.slice(Math.ceil(referenceTags.length * 0.7));
+                } else if (similarityLevel === 'broad') {
+                    // 广泛相似：所有标签都作为加分标签
+                    bonusTags = referenceTags;
+                }
+                
+                console.log(`基于《${referenceBook.title}》搜索，相似度: ${similarityLevel}`);
+                console.log('核心标签:', coreTags.map(t => t.name));
+                console.log('加分标签:', bonusTags.map(t => t.name));
+                
+                const results = await searchByTags(coreTags, bonusTags, []);
+                
+                // 排除参考书籍本身
+                const filteredResults = results.filter(result => result.book.id !== referenceBook.id);
+                
+                console.log(`找到 ${filteredResults.length} 个相关代餐`);
+                return filteredResults;
+                
+            } catch (error) {
+                console.error('基于书籍搜索失败:', error);
+                throw error;
+            }
+        }
+    </script>
+</body>
+</html>
